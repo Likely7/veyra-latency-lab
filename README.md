@@ -2,6 +2,8 @@
 
 **Measure the Frames. Not the Hype.**
 
+[在线测试](https://likely7.github.io/veyra-latency-lab/) · [GitHub 源码](https://github.com/Likely7/veyra-latency-lab)
+
 React + TypeScript + Vite + Tailwind CSS 的浏览器本地延迟测试工作台。默认中文，支持英文、PC 和手机。无账户、数据库、录像上传、AI API 或服务器分析。
 
 ## 运行
@@ -71,3 +73,7 @@ CHROMIUM_PATH=/path/to/chromium npx playwright test
 **Vercel**：导入仓库，选择 Vite；Build command 为 `npm run build`，Output directory 为 `dist`。`vercel.json` 为测试视频设置可重验证缓存，避免修改后持有旧素材。本站本身不需要身份验证；托管平台的访问控制由部署者决定。
 
 请不要把原始录像提交到网站仓库；网站仅提供信号素材与分析提示词。
+
+## 许可证
+
+[MIT License](LICENSE)，Copyright (c) 2026 Likely7。
