@@ -1,16 +1,17 @@
 {
-  "version": 1,
+  "version": 2,
   "seed": "0x56455952",
   "width": 1280,
   "height": 720,
   "signals": {
     "30-20": {
-      "file": "signal-30-20.mp4",
+      "version": 2,
+      "file": "signal-v2-30-20.mp4",
       "fps": 30,
       "eventCount": 20,
       "totalFrames": 401,
       "duration": 13.366666666666667,
-      "sha256": "e7cbcc7ee2cd60caeda29ad6202fbbba5d88664dca596c476a738c6a8fb3946b",
+      "sha256": "92451eb607320689b9b010ea78ae4804e68face87b66fe5a79f88b5199fa65be",
       "events": [
         {
           "id": 1,
@@ -152,15 +153,31 @@
           "bright": false,
           "holdFrames": 22
         }
-      ]
+      ],
+      "frameCode": {
+        "scheme": "veyra-frame16-crc8-v1",
+        "x": 65,
+        "y": 638,
+        "cellSize": 26,
+        "pitch": 34,
+        "cells": 32,
+        "prefix": "1010",
+        "suffix": "0101",
+        "frameBits": 16,
+        "crc": "CRC-8/SMBUS",
+        "polynomial": "0x07",
+        "init": "0x00",
+        "byteOrder": "big-endian"
+      }
     },
     "30-50": {
-      "file": "signal-30-50.mp4",
+      "version": 2,
+      "file": "signal-v2-30-50.mp4",
       "fps": 30,
       "eventCount": 50,
       "totalFrames": 943,
       "duration": 31.433333333333334,
-      "sha256": "491151740dd38a442a2c059c67ec79debc814fe8c1e66684c4aff1921e8b9df1",
+      "sha256": "6dbd453b016ead4f8cb3c385a24c6a2e02aaddd0af34953b3f4b9e34b7c38139",
       "events": [
         {
           "id": 1,
@@ -512,15 +529,31 @@
           "bright": false,
           "holdFrames": 17
         }
-      ]
+      ],
+      "frameCode": {
+        "scheme": "veyra-frame16-crc8-v1",
+        "x": 65,
+        "y": 638,
+        "cellSize": 26,
+        "pitch": 34,
+        "cells": 32,
+        "prefix": "1010",
+        "suffix": "0101",
+        "frameBits": 16,
+        "crc": "CRC-8/SMBUS",
+        "polynomial": "0x07",
+        "init": "0x00",
+        "byteOrder": "big-endian"
+      }
     },
     "30-100": {
-      "file": "signal-30-100.mp4",
+      "version": 2,
+      "file": "signal-v2-30-100.mp4",
       "fps": 30,
       "eventCount": 100,
       "totalFrames": 1878,
       "duration": 62.6,
-      "sha256": "662e2f0ee6da6c115b2ea44ff454e6d01053d5aecc74eb5afa3f9c92a52060ef",
+      "sha256": "e2d5f37f737d7783489a33215f01fa57779d29b6eccad1d9f476f3901d63e93d",
       "events": [
         {
           "id": 1,
@@ -1222,15 +1255,31 @@
           "bright": false,
           "holdFrames": 21
         }
-      ]
+      ],
+      "frameCode": {
+        "scheme": "veyra-frame16-crc8-v1",
+        "x": 65,
+        "y": 638,
+        "cellSize": 26,
+        "pitch": 34,
+        "cells": 32,
+        "prefix": "1010",
+        "suffix": "0101",
+        "frameBits": 16,
+        "crc": "CRC-8/SMBUS",
+        "polynomial": "0x07",
+        "init": "0x00",
+        "byteOrder": "big-endian"
+      }
     },
     "60-20": {
-      "file": "signal-60-20.mp4",
+      "version": 2,
+      "file": "signal-v2-60-20.mp4",
       "fps": 60,
       "eventCount": 20,
       "totalFrames": 800,
       "duration": 13.333333333333334,
-      "sha256": "184d78051bdf8eacba02e49b2b69bed8e62b8dd6f85126231972fc229657a440",
+      "sha256": "14dc863a3fb85bdb6d3815b4ddbe1c382502dd51a10886b7753d2c20ddd1b8da",
       "events": [
         {
           "id": 1,
@@ -1372,15 +1421,31 @@
           "bright": false,
           "holdFrames": 44
         }
-      ]
+      ],
+      "frameCode": {
+        "scheme": "veyra-frame16-crc8-v1",
+        "x": 65,
+        "y": 638,
+        "cellSize": 26,
+        "pitch": 34,
+        "cells": 32,
+        "prefix": "1010",
+        "suffix": "0101",
+        "frameBits": 16,
+        "crc": "CRC-8/SMBUS",
+        "polynomial": "0x07",
+        "init": "0x00",
+        "byteOrder": "big-endian"
+      }
     },
     "60-50": {
-      "file": "signal-60-50.mp4",
+      "version": 2,
+      "file": "signal-v2-60-50.mp4",
       "fps": 60,
       "eventCount": 50,
       "totalFrames": 1886,
       "duration": 31.433333333333334,
-      "sha256": "65570bc9fa883cbb48779edd3848093a7688ee6b22070782a82a618d1d8fe8cb",
+      "sha256": "326ed48c972dea409700beb53d525e42c180dda77b1f548c0b5b7446a9b9d03e",
       "events": [
         {
           "id": 1,
@@ -1732,15 +1797,31 @@
           "bright": false,
           "holdFrames": 33
         }
-      ]
+      ],
+      "frameCode": {
+        "scheme": "veyra-frame16-crc8-v1",
+        "x": 65,
+        "y": 638,
+        "cellSize": 26,
+        "pitch": 34,
+        "cells": 32,
+        "prefix": "1010",
+        "suffix": "0101",
+        "frameBits": 16,
+        "crc": "CRC-8/SMBUS",
+        "polynomial": "0x07",
+        "init": "0x00",
+        "byteOrder": "big-endian"
+      }
     },
     "60-100": {
-      "file": "signal-60-100.mp4",
+      "version": 2,
+      "file": "signal-v2-60-100.mp4",
       "fps": 60,
       "eventCount": 100,
       "totalFrames": 3759,
       "duration": 62.65,
-      "sha256": "4a569ac83720d391646200f533cc133c1212575b2c296d875b111b7f4533f32b",
+      "sha256": "60e3b7794821cb59e801f06fbac6cfd423636832c26d578eff1a9e9ba2c9be22",
       "events": [
         {
           "id": 1,
@@ -2442,15 +2523,31 @@
           "bright": false,
           "holdFrames": 42
         }
-      ]
+      ],
+      "frameCode": {
+        "scheme": "veyra-frame16-crc8-v1",
+        "x": 65,
+        "y": 638,
+        "cellSize": 26,
+        "pitch": 34,
+        "cells": 32,
+        "prefix": "1010",
+        "suffix": "0101",
+        "frameBits": 16,
+        "crc": "CRC-8/SMBUS",
+        "polynomial": "0x07",
+        "init": "0x00",
+        "byteOrder": "big-endian"
+      }
     },
     "120-20": {
-      "file": "signal-120-20.mp4",
+      "version": 2,
+      "file": "signal-v2-120-20.mp4",
       "fps": 120,
       "eventCount": 20,
       "totalFrames": 1599,
       "duration": 13.325,
-      "sha256": "ac67256cbc090defb17938ac63df58cf9c663daf58b56fad41b94c97b47dd164",
+      "sha256": "671cbda824dec8b82c8ceb179821490c7717e62a83b5dcc0ec31159f3b6e5b4e",
       "events": [
         {
           "id": 1,
@@ -2592,15 +2689,31 @@
           "bright": false,
           "holdFrames": 87
         }
-      ]
+      ],
+      "frameCode": {
+        "scheme": "veyra-frame16-crc8-v1",
+        "x": 65,
+        "y": 638,
+        "cellSize": 26,
+        "pitch": 34,
+        "cells": 32,
+        "prefix": "1010",
+        "suffix": "0101",
+        "frameBits": 16,
+        "crc": "CRC-8/SMBUS",
+        "polynomial": "0x07",
+        "init": "0x00",
+        "byteOrder": "big-endian"
+      }
     },
     "120-50": {
-      "file": "signal-120-50.mp4",
+      "version": 2,
+      "file": "signal-v2-120-50.mp4",
       "fps": 120,
       "eventCount": 50,
       "totalFrames": 3771,
       "duration": 31.425,
-      "sha256": "e449e0914d0450fa2200aef72fb1dbe7c3003448b56884967c4efa42c0de37d5",
+      "sha256": "49d22f60a67fb0fb5cd45ffb43ab1b21f651c3117e3eb660e48bfc0f5557027c",
       "events": [
         {
           "id": 1,
@@ -2952,15 +3065,31 @@
           "bright": false,
           "holdFrames": 67
         }
-      ]
+      ],
+      "frameCode": {
+        "scheme": "veyra-frame16-crc8-v1",
+        "x": 65,
+        "y": 638,
+        "cellSize": 26,
+        "pitch": 34,
+        "cells": 32,
+        "prefix": "1010",
+        "suffix": "0101",
+        "frameBits": 16,
+        "crc": "CRC-8/SMBUS",
+        "polynomial": "0x07",
+        "init": "0x00",
+        "byteOrder": "big-endian"
+      }
     },
     "120-100": {
-      "file": "signal-120-100.mp4",
+      "version": 2,
+      "file": "signal-v2-120-100.mp4",
       "fps": 120,
       "eventCount": 100,
       "totalFrames": 7509,
       "duration": 62.575,
-      "sha256": "7d4587095f8d8fa3f6b060fe82c7afc4f2699a77f09f66baf5260971456f0545",
+      "sha256": "0338fcfd761ce33ac318257788a84cd9ce5d58ea1eefedadce14373990c29057",
       "events": [
         {
           "id": 1,
@@ -3662,7 +3791,22 @@
           "bright": false,
           "holdFrames": 84
         }
-      ]
+      ],
+      "frameCode": {
+        "scheme": "veyra-frame16-crc8-v1",
+        "x": 65,
+        "y": 638,
+        "cellSize": 26,
+        "pitch": 34,
+        "cells": 32,
+        "prefix": "1010",
+        "suffix": "0101",
+        "frameBits": 16,
+        "crc": "CRC-8/SMBUS",
+        "polynomial": "0x07",
+        "init": "0x00",
+        "byteOrder": "big-endian"
+      }
     }
   }
 }

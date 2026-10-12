@@ -5,6 +5,10 @@ import {
   frameAt,
   makePrompt,
   refreshCompatible,
+  configuredStandard,
+  updateSetting,
+  roundFinished,
+  externalRound,
   type Signal,
   type RoundResult,
 } from "./core";
@@ -79,4 +83,50 @@ test("Prompts preserve session settings, interrupted rounds, and epistemic limit
       ),
     );
   }
+});
+
+test("Source limits remain independent of high-FPS camera sampling", () => {
+  assert.ok(configuredStandard(defaults));
+  const phone = updateSetting(defaults, "camera", 240);
+  assert.equal(phone.fps, 60);
+  assert.ok(configuredStandard(phone));
+  assert.equal(updateSetting(phone, "fps", 120).fps, 60);
+  const faster = updateSetting(
+    updateSetting(phone, "refresh", 120),
+    "fps",
+    120,
+  );
+  assert.equal(faster.fps, 120);
+  const slower = updateSetting(faster, "refresh", 60);
+  assert.equal(slower.fps, 60);
+  assert.equal(slower.camera, 240);
+  assert.ok(!configuredStandard({ ...defaults, fps: 120 }));
+  assert.ok(!configuredStandard({ ...defaults, refresh: 144 }));
+  assert.ok(!refreshCompatible(60, 0));
+  assert.ok(!refreshCompatible(Infinity, 60));
+});
+test("External completion is user confirmation rather than observed browser playback", () => {
+  const r = externalRound(1);
+  assert.ok(roundFinished(r));
+  assert.equal(r.diagnostics.complete, false);
+  assert.equal(r.diagnostics.dropped, null);
+  assert.equal(r.diagnostics.rvfc, false);
+  const prompt = makePrompt(
+    { ...defaults, source: "external" },
+    "EXTERNAL",
+    [r],
+    signal,
+    "zh",
+  );
+  assert.ok(prompt.includes("source=external"));
+  assert.ok(prompt.includes("external_recording_confirmed=true"));
+  assert.ok(prompt.includes("浏览器没有观察外部播放"));
+  assert.equal(
+    updateSetting({ ...defaults, method: "loop" }, "source", "external").method,
+    "pbp",
+  );
+  assert.equal(
+    updateSetting({ ...defaults, source: "external" }, "method", "loop").source,
+    "pc",
+  );
 });

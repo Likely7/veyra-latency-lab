@@ -24,18 +24,23 @@ import {
   X,
 } from "lucide-react";
 import TestPlayer from "./components/TestPlayer";
+import PreparationControls from "./components/PreparationControls";
+import ExternalRecording from "./components/ExternalRecording";
 import {
   defaults,
   makePrompt,
   methodName,
   modeName,
-  refreshCompatible,
+  configuredStandard,
+  updateSetting,
+  roundFinished,
   type Language,
   type Settings,
   type Signal,
   type RoundResult,
 } from "./core";
-type Page = "home" | "setup" | "filming" | "player" | "between" | "results";
+type Page =
+  "home" | "setup" | "filming" | "player" | "between" | "results" | "external";
 function Wiring({
   lang,
   method,
@@ -230,7 +235,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }
   function configure<K extends keyof Settings>(key: K, value: Settings[K]) {
-    setSettings((s) => ({ ...s, [key]: value }));
+    setSettings((s) => updateSetting(s, key, value));
     setAck(false);
     setRounds([]);
     setSession("");
@@ -238,20 +243,21 @@ function App() {
     setSwapped(false);
   }
   function start() {
+    if (!signal || !ack || !configuredStandard(settings)) return;
     setSession(
       `VL-${new Date().toISOString().slice(2, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`,
     );
     setRounds([]);
     setRound(1);
     setSwapped(false);
-    navigate("player");
+    navigate(settings.source === "external" ? "external" : "player");
   }
   function finished(result: RoundResult) {
     setRounds((old) => [
       ...old.filter((r) => r.round !== result.round),
       result,
     ]);
-    navigate("between");
+    navigate("results");
   }
   const prompt = signal
     ? makePrompt(settings, session, rounds, signal, lang)
@@ -264,7 +270,12 @@ function App() {
       setTimeout(() => setCopied(false), 2500);
     } catch {
       setCopyError(true);
-      document.querySelector<HTMLTextAreaElement>("#analysis-prompt")?.select();
+      const area =
+        document.querySelector<HTMLTextAreaElement>("#analysis-prompt");
+      const disclosure = area?.closest("details");
+      if (disclosure) disclosure.open = true;
+      area?.select();
+      area?.scrollIntoView({ block: "center" });
     }
   }
   function exportSession() {
@@ -287,10 +298,9 @@ function App() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   const steps = [
-    t("准备设备", "Prepare"),
-    t("运行测试", "Run test"),
-    t("手机拍摄", "Film"),
-    t("复制提示词", "Copy prompt"),
+    t("准备连接与参数", "Prepare"),
+    t("播放与手机拍摄", "Play & film"),
+    t("完成与复制提示词", "Copy prompt"),
   ];
   if (page === "player" && signal)
     return (
@@ -298,7 +308,7 @@ function App() {
         key={`${session}-${round}`}
         {...{ signal, settings, session, round, lang }}
         onFinish={finished}
-        onBack={() => navigate("filming")}
+        onBack={() => navigate("setup")}
       />
     );
   return (
@@ -539,8 +549,8 @@ function App() {
                 <span className="eyebrow">THE METHOD</span>
                 <h2>
                   {t(
-                    "四步，把延迟变成证据。",
-                    "Four steps. Evidence in every frame.",
+                    "三步，把延迟变成证据。",
+                    "Three steps. Evidence in every frame.",
                   )}
                 </h2>
               </div>
@@ -565,21 +575,13 @@ function App() {
                   icon: Activity,
                   title: steps[1],
                   desc: t(
-                    "播放恒定帧率素材，每一帧拥有唯一编号。",
-                    "Play a constant-frame-rate signal with a unique number burned into every frame.",
-                  ),
-                },
-                {
-                  icon: Smartphone,
-                  title: steps[2],
-                  desc: t(
-                    "用 120FPS 或更高帧率拍摄两个画面，保留原始录像。",
-                    "Film both regions at 120FPS or higher and keep the original recording.",
+                    "全屏播放真实 CFR 素材，手机同时拍到参考与采集预览。",
+                    "Play the real CFR signal fullscreen and film both reference and USB preview.",
                   ),
                 },
                 {
                   icon: Copy,
-                  title: steps[3],
+                  title: steps[2],
                   desc: t(
                     "复制本次设置的提示词，交给你使用的视频分析 AI。",
                     "Copy your session prompt and use it with your preferred video analysis AI.",
@@ -589,7 +591,7 @@ function App() {
                 <button
                   className="step-card"
                   key={i}
-                  onClick={() => navigate(i === 2 ? "filming" : "setup")}
+                  onClick={() => navigate("setup")}
                 >
                   <div className="step-card-top">
                     <s.icon size={22} />
@@ -690,31 +692,27 @@ function App() {
       ) : (
         <main className="content workspace">
           <div className="workflow">
-            {steps.map((s, i) => (
+            {steps.map((step, i) => (
               <button
-                key={s}
-                disabled={i === 3 && !rounds.length}
+                key={step}
+                disabled={(i === 1 && !session) || (i === 2 && !rounds.length)}
                 className={
-                  (page === "setup"
-                    ? 0
-                    : page === "filming"
-                      ? 2
-                      : page === "between"
-                        ? 1
-                        : 3) === i
+                  (page === "setup" ? 0 : page === "results" ? 2 : 1) === i
                     ? "current"
                     : ""
                 }
                 onClick={() => {
                   if (i === 0) navigate("setup");
-                  else if (i === 2) navigate("filming");
-                  else if (i === 3 && rounds.length) navigate("results");
-                  else if (i === 1) navigate("setup");
+                  else if (i === 2) navigate("results");
+                  else if (session)
+                    navigate(
+                      settings.source === "external" ? "external" : "player",
+                    );
                 }}
               >
                 <span>0{i + 1}</span>
-                {s}
-                {i < 3 && <ChevronRight size={14} />}
+                {step}
+                {i < 2 && <ChevronRight size={14} />}
               </button>
             ))}
           </div>
@@ -755,6 +753,64 @@ function App() {
                         </button>
                       ))}
                     </div>
+                    <div className="path-labels">
+                      <span>
+                        <b>HDMI</b>
+                        {t(
+                          "参考画面 · 采集卡直通输出",
+                          "Reference · HDMI pass-through",
+                        )}
+                      </span>
+                      <span>
+                        <b>USB</b>
+                        {t("采集预览 · Veyra / OBS", "Preview · Veyra / OBS")}
+                      </span>
+                    </div>
+                    <div className="field source-choice">
+                      <label>
+                        {t(
+                          "测试视频在哪里播放？",
+                          "Where will the signal play?",
+                        )}
+                      </label>
+                      <div className="segmented">
+                        {(["pc", "external"] as const).map((source) => (
+                          <button
+                            key={source}
+                            className={
+                              settings.source === source ? "active" : ""
+                            }
+                            onClick={() => configure("source", source)}
+                          >
+                            {source === "pc"
+                              ? t("HDMI 信号源电脑", "HDMI source PC")
+                              : t(
+                                  "外部设备（PS5 等）",
+                                  "External device (PS5, etc.)",
+                                )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {settings.source === "external" && (
+                      <div className="notice important">
+                        <AlertTriangle size={20} />
+                        <div>
+                          <b>
+                            {t(
+                              "必须在外部 HDMI 信号源上播放下载视频",
+                              "Play the downloaded video on the external HDMI source",
+                            )}
+                          </b>
+                          <p>
+                            {t(
+                              "只在 USB 预览电脑打开网页，不能测试 PS5 等外部链路。先确认设备/播放器支持该素材及目标 FPS；不支持时改用兼容的 HDMI 播放器或 PC 信号源。",
+                              "Opening the website on the USB preview PC does not test a PS5 or other external chain. Confirm file/FPS support on the device; otherwise use a compatible HDMI player or PC source.",
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     <Wiring lang={lang} method={settings.method} />
                     <div className="connection-steps">
                       {(settings.method === "pbp"
@@ -856,199 +912,23 @@ function App() {
                     </button>
                   </section>
                 </div>
-                <aside className="panel settings-panel">
-                  <div className="panel-heading">
-                    <h3>
-                      <SlidersHorizontal size={18} />
-                      {t("测试参数", "Test parameters")}
-                    </h3>
-                    <span className="mono muted">CFR V1</span>
-                  </div>
-                  <div className="field">
-                    <label>
-                      {t("源信号帧率", "Source frame rate")}
-                      <span className="tag">{t("60 标准", "60 STANDARD")}</span>
-                    </label>
-                    <div className="segmented">
-                      {[30, 60, 120].map((n) => (
-                        <button
-                          className={settings.fps === n ? "active" : ""}
-                          key={n}
-                          onClick={() => configure("fps", n)}
-                        >
-                          {n} FPS
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="field">
-                    <label htmlFor="refresh">
-                      {t("实际显示器刷新率", "Actual monitor refresh rate")}
-                      <span className="unit">Hz</span>
-                    </label>
-                    <input
-                      id="refresh"
-                      type="number"
-                      min="24"
-                      max="1000"
-                      value={settings.refresh}
-                      onChange={(e) =>
-                        configure("refresh", Number(e.target.value))
-                      }
-                    />
-                    <small>
-                      {t(
-                        "请从系统显示设置中核对。此值由你填写，不是本站测量。",
-                        "Confirm in system display settings. This value is user supplied, not measured.",
-                      )}
-                    </small>
-                  </div>
-                  <div className="field">
-                    <label htmlFor="camera">
-                      {t("手机拍摄帧率", "Camera recording frame rate")}
-                    </label>
-                    <select
-                      id="camera"
-                      value={settings.camera}
-                      onChange={(e) =>
-                        configure("camera", Number(e.target.value))
-                      }
-                    >
-                      {[30, 60, 120, 240, 480, 960].map((n) => (
-                        <option value={n} key={n}>
-                          {n} FPS
-                          {n === 120
-                            ? t(" · 标准推荐", " · Recommended")
-                            : n === 240
-                              ? t(" · 更高精度", " · Finer sampling")
-                              : ""}
-                        </option>
-                      ))}
-                    </select>
-                    <small className={settings.camera <= 60 ? "warning" : ""}>
-                      {settings.camera <= 60
-                        ? t(
-                            "低采样精度：30/60FPS 可能遗漏事件起始时刻。",
-                            "Low sampling precision: 30/60FPS may miss the start of an event.",
-                          )
-                        : t("采样间隔约", "Sampling interval ≈ ")}
-                      {settings.camera > 60 &&
-                        `${(1000 / settings.camera).toFixed(2)} ms`}
-                    </small>
-                  </div>
-                  <div className="field">
-                    <label htmlFor="card">
-                      {t("采集卡型号", "Capture card model")}
-                      <span className="unit">{t("选填", "Optional")}</span>
-                    </label>
-                    <input
-                      id="card"
-                      placeholder={t(
-                        "例如：Elgato HD60 X",
-                        "e.g. Elgato HD60 X",
-                      )}
-                      value={settings.card}
-                      maxLength={120}
-                      onChange={(e) => configure("card", e.target.value)}
-                    />
-                  </div>
-                  <div className="field-pair">
-                    <div className="field">
-                      <label htmlFor="format">
-                        {t("采集格式", "Capture format")}
-                      </label>
-                      <select
-                        id="format"
-                        value={settings.format}
-                        onChange={(e) => configure("format", e.target.value)}
-                      >
-                        {["YUY2", "NV12", "MJPEG", "Other"].map((x) => (
-                          <option key={x} value={x}>
-                            {x === "Other" ? t("其他", "Other") : x}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="field">
-                      <label htmlFor="software">
-                        {t("测试软件", "Test software")}
-                      </label>
-                      <select
-                        id="software"
-                        value={settings.software}
-                        onChange={(e) => configure("software", e.target.value)}
-                      >
-                        {["Veyra", "OBS", "Other"].map((x) => (
-                          <option key={x} value={x}>
-                            {x === "Other" ? t("其他", "Other") : x}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="field">
-                    <label>{t("事件数量", "Event count")}</label>
-                    <div className="segmented mode-options">
-                      {[20, 50, 100].map((n) => (
-                        <button
-                          className={settings.count === n ? "active" : ""}
-                          key={n}
-                          onClick={() => configure("count", n)}
-                        >
-                          <b>{n}</b>
-                          <span>{modeName(n, lang)}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="settings-footnote">
-                    <Info size={15} />
-                    <p>
-                      {t(
-                        "拍摄帧率决定相机采样间隔。源帧率、显示刷新率和扫描时序仍限制测量准确性。",
-                        "Camera FPS determines the sampling interval. Source FPS, display refresh and scan timing still limit accuracy.",
-                      )}
-                    </p>
-                  </div>
-                  {!refreshCompatible(settings.refresh, settings.fps) && (
-                    <p className="warning">
-                      {t(
-                        "刷新率不是源 FPS 的整数倍，无法保证均匀逐帧输出。",
-                        "Refresh is not an integer multiple of source FPS. Uniform frame output is not guaranteed.",
-                      )}
-                    </p>
-                  )}
-                  {loadError && (
-                    <p className="warning" role="alert">
-                      {t("素材清单加载失败：", "Manifest loading failed: ")}
-                      {loadError}
-                    </p>
-                  )}
-                  <button
-                    className="button primary full-width"
-                    disabled={
-                      !signal ||
-                      settings.refresh < 24 ||
-                      settings.refresh > 1000
-                    }
-                    onClick={() => navigate("filming")}
-                  >
-                    {t("下一步：拍摄检查", "Next: filming checklist")}
-                    <ArrowRight size={17} />
-                  </button>
-                  <p className="center-note">
-                    {signal
-                      ? `${signal.duration.toFixed(1)}s / ${t("轮", "round")} · ${t("推荐拍摄两轮", "2 rounds recommended")}`
-                      : t("正在加载素材清单…", "Loading signal manifest…")}
-                  </p>
-                </aside>
+                <PreparationControls
+                  settings={settings}
+                  signal={signal}
+                  lang={lang}
+                  loadError={loadError}
+                  ack={ack}
+                  onAck={setAck}
+                  onChange={configure}
+                  onStart={start}
+                />
               </div>
             </>
           )}
           {page === "filming" && (
             <>
               <div className="workspace-title">
-                <span className="eyebrow">03 / CAPTURE THE EVIDENCE</span>
+                <span className="eyebrow">FILMING GUIDE / OPTIONAL</span>
                 <h1>
                   {t("手机固定，证据清晰。", "Steady phone. Clear evidence.")}
                 </h1>
@@ -1171,31 +1051,11 @@ function App() {
                       {t("修改", "Edit")}
                     </button>
                   </div>
-                  <label className="checkbox-line">
-                    <input
-                      type="checkbox"
-                      checked={ack}
-                      onChange={(e) => setAck(e.target.checked)}
-                    />
-                    <span>
-                      {t(
-                        "我已核对设置，了解亮度变化的光敏性风险与测量局限。",
-                        "I checked the settings and understand the photosensitivity risk and measurement limits.",
-                      )}
-                    </span>
-                  </label>
                   <button
                     className="button primary full-width"
-                    disabled={
-                      !ack ||
-                      !signal ||
-                      settings.refresh < 24 ||
-                      settings.refresh > 1000
-                    }
-                    onClick={start}
+                    onClick={() => navigate("setup")}
                   >
-                    <Play size={17} />
-                    {t("加载测试信号", "Load the test signal")}
+                    {t("返回准备，开始测试", "Back to preparation")}
                     <ArrowRight size={16} />
                   </button>
                   {!signal && (
@@ -1214,16 +1074,24 @@ function App() {
               </div>
             </>
           )}
+          {page === "external" && signal && (
+            <ExternalRecording
+              key={`${session}-${round}`}
+              {...{ signal, settings, lang, round }}
+              onFinish={finished}
+              onBack={() => navigate("setup")}
+            />
+          )}
           {page === "between" && (
             <section className="round-panel panel">
               <div
                 className={
-                  rounds.at(-1)?.diagnostics.complete
+                  (rounds.at(-1) ? roundFinished(rounds.at(-1)!) : false)
                     ? "success-symbol"
                     : "warning-symbol"
                 }
               >
-                {rounds.at(-1)?.diagnostics.complete ? (
+                {(rounds.at(-1) ? roundFinished(rounds.at(-1)!) : false) ? (
                   <CheckCircle2 size={32} />
                 ) : (
                   <AlertTriangle size={32} />
@@ -1233,10 +1101,14 @@ function App() {
                 ROUND {round} / {session}
               </span>
               <h1>
-                {rounds.at(-1)?.diagnostics.complete
+                {(rounds.at(-1) ? roundFinished(rounds.at(-1)!) : false)
                   ? t(
-                      `第 ${round} 轮播放完成。`,
-                      `Round ${round} playback complete.`,
+                      settings.source === "external"
+                        ? "第一轮拍摄已确认，第二轮可选。"
+                        : `第 ${round} 轮播放完成，第二轮可选。`,
+                      settings.source === "external"
+                        ? "External round confirmed; round 2 is optional."
+                        : `Round ${round} complete; round 2 is optional.`,
                     )
                   : t(`第 ${round} 轮已中断。`, `Round ${round} interrupted.`)}
               </h1>
@@ -1257,10 +1129,14 @@ function App() {
                   </span>
                 </div>
               )}
-              {!rounds.at(-1)?.diagnostics.complete ? (
+              {!(rounds.at(-1) ? roundFinished(rounds.at(-1)!) : false) ? (
                 <button
                   className="button primary"
-                  onClick={() => navigate("player")}
+                  onClick={() =>
+                    navigate(
+                      settings.source === "external" ? "external" : "player",
+                    )
+                  }
                 >
                   <RotateCcw size={16} />
                   {t("重新运行本轮", "Retry this round")}
@@ -1305,7 +1181,9 @@ function App() {
                     disabled={!swapped}
                     onClick={() => {
                       setRound(2);
-                      navigate("player");
+                      navigate(
+                        settings.source === "external" ? "external" : "player",
+                      );
                     }}
                   >
                     {t("继续第二轮", "Continue to round 2")}
@@ -1328,9 +1206,9 @@ function App() {
           {page === "results" && (
             <>
               <div className="workspace-title">
-                <span className="eyebrow">04 / READY FOR ANALYSIS</span>
+                <span className="eyebrow">03 / READY FOR ANALYSIS</span>
                 <h1>
-                  {rounds.some((r) => r.diagnostics.complete)
+                  {rounds.some(roundFinished)
                     ? t(
                         "录像就绪，交给你的 AI。",
                         "Bring the evidence to your AI.",
@@ -1345,94 +1223,184 @@ function App() {
                 </p>
               </div>
               <div className="results-grid">
-                <aside>
+                <aside className="result-summary">
                   <section className="panel">
-                    <div className="panel-heading">
-                      <h3>
-                        <Layers size={18} />
-                        {t("会话记录", "Session record")}
-                      </h3>
-                      <span className="tag">
-                        {rounds.filter((r) => r.diagnostics.complete).length}{" "}
-                        {t("轮完成", "COMPLETED")}
+                    <h3>
+                      <CheckCircle2 size={18} />
+                      {t("本次测试", "This test")}
+                    </h3>
+                    <div className="summary-metrics">
+                      <span>
+                        {t("源视频", "Source")}
+                        <b>{settings.fps} FPS</b>
+                      </span>
+                      <span>
+                        {t("显示器", "Monitor")}
+                        <b>{settings.refresh} Hz</b>
+                      </span>
+                      <span>
+                        {t("手机拍摄", "Phone")}
+                        <b>{settings.camera} FPS</b>
                       </span>
                     </div>
-                    <dl className="session-data">
-                      <dt>SESSION ID</dt>
-                      <dd className="lime mono">{session || "—"}</dd>
-                      <dt>{t("测试信号", "Source signal")}</dt>
-                      <dd>{settings.fps} FPS CFR</dd>
-                      <dt>{t("拍摄 / 刷新率", "Camera / refresh")}</dt>
-                      <dd>
-                        {settings.camera} FPS / {settings.refresh} Hz
-                      </dd>
-                      <dt>{t("测试方式", "Test method")}</dt>
-                      <dd>{methodName(settings.method, lang)}</dd>
-                      <dt>{t("测试模式", "Test mode")}</dt>
-                      <dd>
-                        {modeName(settings.count, lang)} · {settings.count}{" "}
-                        {t("事件/轮", "events/round")}
-                      </dd>
-                      <dt>{t("已记录轮次", "Recorded rounds")}</dt>
-                      <dd>
-                        {rounds
-                          .map(
-                            (r) =>
-                              `${r.round}${r.diagnostics.complete ? "" : " (interrupted)"}`,
+                    <p className="technical-note muted">
+                      {settings.source === "external"
+                        ? t(
+                            "外部拍摄已由用户确认；外部播放未验证。",
+                            "External recording is user-confirmed; playback unverified.",
                           )
-                          .join(", ") || "—"}
-                      </dd>
-                      <dt>{t("软件 / 格式", "Software / format")}</dt>
-                      <dd>
-                        {settings.software} / {settings.format}
-                      </dd>
-                      <dt>{t("型号", "Model")}</dt>
-                      <dd>{settings.card || t("未填写", "Unspecified")}</dd>
-                    </dl>
-                    <button
-                      className="button secondary full-width"
-                      onClick={exportSession}
-                    >
-                      <Download size={16} />
-                      {t("下载会话 JSON", "Download session JSON")}
-                    </button>
-                  </section>
-                  <section className="panel diagnostics-panel">
-                    <h3>
-                      <Activity size={18} />
-                      {t("播放诊断", "Playback diagnostics")}
-                    </h3>
-                    {rounds.map((r) => (
-                      <div key={r.round} className="diagnostic-round">
-                        <b>
-                          ROUND {r.round} ·{" "}
-                          {r.diagnostics.complete
-                            ? t("播放结束", "Ended")
-                            : t("已中断", "Interrupted")}
-                        </b>
-                        <p>
-                          {t("浏览器掉帧", "Browser drops")}:{" "}
-                          {r.diagnostics.dropped ?? t("不可用", "unavailable")}{" "}
-                          · {t("回调间隙", "Callback gaps")}:{" "}
-                          {r.diagnostics.callbackGaps}
-                        </p>
-                        <p>
-                          {t("重复时间戳", "Repeated timestamps")}:{" "}
-                          {r.diagnostics.repeatedTimestamps} ·{" "}
-                          {r.diagnostics.callbacks} callbacks
-                        </p>
-                        {r.diagnostics.issues.map((x) => (
-                          <small key={x}>{translateIssue(x, lang)}</small>
-                        ))}
-                      </div>
-                    ))}
-                    <p className="warning">
-                      {t(
-                        "真实显示扫描、物理重复帧及 HDMI 内部延迟均未验证。",
-                        "Physical scanning, physical repeats and internal HDMI latency are unverified.",
-                      )}
+                        : t(
+                            "网页记录的是播放状态，请自行确认原始录像完整。",
+                            "Browser playback status is recorded; confirm your original recording is complete.",
+                          )}
                     </p>
+                    {round === 1 && rounds.some(roundFinished) && (
+                      <button
+                        className="button secondary full-width"
+                        onClick={() => navigate("between")}
+                      >
+                        <MoveHorizontal size={17} />
+                        {t(
+                          "推荐：交换位置再测第二轮（可选）",
+                          "Recommended: swap and repeat (optional)",
+                        )}
+                      </button>
+                    )}
+                    {rounds.at(-1) && !roundFinished(rounds.at(-1)!) && (
+                      <button
+                        className="button secondary full-width"
+                        onClick={() =>
+                          navigate(
+                            settings.source === "external"
+                              ? "external"
+                              : "player",
+                          )
+                        }
+                      >
+                        <RotateCcw size={16} />
+                        {t("重新运行本轮", "Retry this round")}
+                      </button>
+                    )}
                   </section>
+                  <details className="advanced-settings result-advanced">
+                    <summary>
+                      {t(
+                        "高级设置：会话与播放诊断",
+                        "Advanced: session & playback diagnostics",
+                      )}
+                      <ChevronDown size={16} />
+                    </summary>
+                    <div className="advanced-content">
+                      <section className="panel">
+                        <div className="panel-heading">
+                          <h3>
+                            <Layers size={18} />
+                            {t("会话记录", "Session record")}
+                          </h3>
+                          <span className="tag">
+                            {rounds.filter(roundFinished).length}{" "}
+                            {t("轮完成", "COMPLETED")}
+                          </span>
+                        </div>
+                        <dl className="session-data">
+                          <dt>SESSION ID</dt>
+                          <dd className="lime mono">{session || "—"}</dd>
+                          <dt>{t("测试信号", "Source signal")}</dt>
+                          <dd>{settings.fps} FPS CFR</dd>
+                          <dt>{t("拍摄 / 刷新率", "Camera / refresh")}</dt>
+                          <dd>
+                            {settings.camera} FPS / {settings.refresh} Hz
+                          </dd>
+                          <dt>{t("测试方式", "Test method")}</dt>
+                          <dd>{methodName(settings.method, lang)}</dd>
+                          <dt>{t("测试模式", "Test mode")}</dt>
+                          <dd>
+                            {modeName(settings.count, lang)} · {settings.count}{" "}
+                            {t("事件/轮", "events/round")}
+                          </dd>
+                          <dt>{t("已记录轮次", "Recorded rounds")}</dt>
+                          <dd>
+                            {rounds
+                              .map(
+                                (r) =>
+                                  `${r.round}${roundFinished(r) ? "" : " (interrupted)"}`,
+                              )
+                              .join(", ") || "—"}
+                          </dd>
+                          <dt>{t("软件 / 格式", "Software / format")}</dt>
+                          <dd>
+                            {settings.software} / {settings.format}
+                          </dd>
+                          <dt>{t("型号", "Model")}</dt>
+                          <dd>{settings.card || t("未填写", "Unspecified")}</dd>
+                        </dl>
+                        <button
+                          className="button secondary full-width"
+                          onClick={exportSession}
+                        >
+                          <Download size={16} />
+                          {t("下载会话 JSON", "Download session JSON")}
+                        </button>
+                      </section>
+                      <section className="panel diagnostics-panel">
+                        <h3>
+                          <Activity size={18} />
+                          {t("播放诊断", "Playback diagnostics")}
+                        </h3>
+                        {rounds.map((r) => (
+                          <div key={r.round} className="diagnostic-round">
+                            <b>
+                              ROUND {r.round} ·{" "}
+                              {r.source === "external"
+                                ? t(
+                                    "外部拍摄已确认，播放未验证",
+                                    "External recording confirmed; playback unverified",
+                                  )
+                                : r.diagnostics.complete
+                                  ? t("播放结束", "Ended")
+                                  : t("已中断", "Interrupted")}
+                            </b>
+                            {r.source === "external" ? (
+                              <p>
+                                {t(
+                                  "没有观察外部播放，浏览器掉帧与重复帧数据不可用。",
+                                  "External playback was not observed; browser drop/repeat data unavailable.",
+                                )}
+                              </p>
+                            ) : (
+                              <>
+                                <p>
+                                  {t("浏览器掉帧", "Browser drops")}:{" "}
+                                  {r.diagnostics.dropped ??
+                                    t("不可用", "unavailable")}{" "}
+                                  · {t("回调间隙", "Callback gaps")}:{" "}
+                                  {r.diagnostics.rvfc
+                                    ? r.diagnostics.callbackGaps
+                                    : t("不可用", "unavailable")}
+                                </p>
+                                <p>
+                                  {t("重复时间戳", "Repeated timestamps")}:{" "}
+                                  {r.diagnostics.rvfc
+                                    ? r.diagnostics.repeatedTimestamps
+                                    : t("不可用", "unavailable")}{" "}
+                                  · {r.diagnostics.callbacks} callbacks
+                                </p>
+                              </>
+                            )}
+                            {r.diagnostics.issues.map((x) => (
+                              <small key={x}>{translateIssue(x, lang)}</small>
+                            ))}
+                          </div>
+                        ))}
+                        <p className="warning">
+                          {t(
+                            "真实显示扫描、物理重复帧及 HDMI 内部延迟均未验证。",
+                            "Physical scanning, physical repeats and internal HDMI latency are unverified.",
+                          )}
+                        </p>
+                      </section>
+                    </div>
+                  </details>
                 </aside>
                 <section className="panel prompt-panel">
                   <div className="panel-heading">
@@ -1453,15 +1421,6 @@ function App() {
                       )}
                     </p>
                   </div>
-                  <textarea
-                    id="analysis-prompt"
-                    value={prompt}
-                    readOnly
-                    aria-label={t(
-                      "可复制的 AI 分析提示词",
-                      "AI analysis prompt to copy",
-                    )}
-                  />
                   <button className="button primary full-width" onClick={copy}>
                     {copied ? <Check size={17} /> : <Copy size={17} />}{" "}
                     {copied
@@ -1471,6 +1430,27 @@ function App() {
                           "Copy complete analysis prompt",
                         )}
                   </button>
+                  <details className="advanced-settings prompt-preview">
+                    <summary>
+                      {t(
+                        "查看完整提示词 / 手动复制",
+                        "Preview full prompt / manual copy",
+                      )}
+                      <ChevronDown size={16} />
+                    </summary>
+                    <div className="advanced-content">
+                      {" "}
+                      <textarea
+                        id="analysis-prompt"
+                        value={prompt}
+                        readOnly
+                        aria-label={t(
+                          "可复制的 AI 分析提示词",
+                          "AI analysis prompt to copy",
+                        )}
+                      />
+                    </div>
+                  </details>
                   {copyError && (
                     <p role="alert" className="warning">
                       {t(
@@ -1520,6 +1500,8 @@ function App() {
 function translateIssue(issue: string, lang: Language) {
   if (lang === "en") return issue;
   const mapping: Record<string, string> = {
+    "External playback is user-confirmed; browser did not observe source output":
+      "外部拍摄由用户确认；浏览器没有观察真实信号源播放",
     "User supplied refresh is incompatible with uniform target-frame presentation":
       "填写的刷新率无法匹配均匀逐帧输出",
     "Browser callback cadence does not confirm supplied refresh; physical presentation unverified":

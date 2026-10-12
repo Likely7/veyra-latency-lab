@@ -2111,3 +2111,234 @@ svg {
     transition: none !important;
   }
 }
+/* V2: three steps; details stay available without interrupting the ordinary path. */
+.step-cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.advanced-settings {
+  border: 1px solid #303b44;
+  border-radius: 5px;
+  margin: 19px 0;
+  background: #0f1419;
+}
+.advanced-settings > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 11px;
+  color: #a7b9c5;
+  padding: 13px 15px;
+}
+.advanced-settings > summary::-webkit-details-marker {
+  display: none;
+}
+.advanced-settings[open] > summary {
+  border-bottom: 1px solid #2b3740;
+  color: #b3f46b;
+}
+.advanced-settings[open] > summary svg {
+  transform: rotate(180deg);
+}
+.advanced-content {
+  padding: 16px;
+}
+.technical-note {
+  font-size: 10px;
+  line-height: 1.9;
+  margin: 16px 0;
+}
+.compact-notice {
+  font-size: 10px;
+  padding: 12px;
+  margin: 16px 0;
+}
+.path-labels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+.path-labels > span {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 10px;
+  color: #8a9fa9;
+  padding: 13px;
+  border: 1px solid #303a42;
+  border-radius: 4px;
+}
+.path-labels b {
+  font: 15px monospace;
+  color: #b3f46b;
+}
+.source-choice {
+  margin-top: 20px;
+}
+.result-summary > .panel > .button {
+  margin-top: 15px;
+  font-size: 11px;
+}
+.result-advanced .panel {
+  padding: 16px;
+  margin-top: 12px;
+  border-color: #27333d;
+}
+.result-advanced .panel:first-child {
+  margin-top: 0;
+}
+.result-advanced .advanced-content {
+  padding: 10px;
+}
+.summary-metrics {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 23px;
+}
+.summary-metrics > span {
+  font-size: 10px;
+  color: #79909e;
+}
+.summary-metrics b {
+  display: block;
+  font: 17px monospace;
+  color: #b3f46b;
+  margin-top: 8px;
+  white-space: nowrap;
+}
+.external-recording {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 30px;
+}
+.external-recording h1 {
+  margin-top: 20px;
+  font-size: 28px;
+  font-weight: 550;
+}
+.external-recording ol {
+  list-style: decimal;
+  padding-left: 22px;
+  font-size: 12px;
+  line-height: 1.9;
+  color: #a9bac5;
+}
+.external-recording li {
+  margin-bottom: 15px;
+}
+.external-recording > .button {
+  margin-top: 20px;
+}
+.external-recording > .back-link {
+  margin-top: 20px;
+}
+.player-advanced {
+  width: min(100%, 600px);
+  margin: 0;
+}
+.player-gate .player-advanced .preflight {
+  width: 100%;
+  border: none;
+  padding: 0;
+}
+.player-gate .filming-reminder {
+  color: #b7caa9;
+}
+.live-diagnostics {
+  margin-left: auto;
+}
+.live-diagnostics > summary {
+  cursor: pointer;
+  color: #a0b392;
+  border: 1px solid #344232;
+  border-radius: 3px;
+  padding: 5px 10px;
+}
+.live-diagnostics > div {
+  position: absolute;
+  bottom: 50px;
+  right: 18px;
+  width: min(420px, calc(100vw - 36px));
+  background: #0e161eee;
+  border: 1px solid #41515b;
+  border-radius: 5px;
+  padding: 16px;
+  line-height: 1.9;
+  font-size: 10px;
+}
+.live-diagnostics p + p {
+  margin-top: 9px;
+}
+@media (max-width: 800px) {
+  .step-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .step-card h3 {
+    font-size: 12px;
+  }
+  .step-card {
+    padding: 20px 15px;
+  }
+}
+@media (max-width: 640px) {
+  .step-cards {
+    grid-template-columns: 1fr;
+  }
+  .step-card {
+    padding: 18px;
+  }
+  .step-card h3 {
+    margin-top: 18px;
+    font-size: 14px;
+  }
+  .step-card p {
+    font-size: 11px;
+  }
+  .workflow > button {
+    font-size: 9px;
+  }
+  .workflow svg {
+    margin-left: 3px;
+  }
+  .path-labels {
+    gap: 7px;
+  }
+  .path-labels > span {
+    font-size: 9px;
+    padding: 10px;
+  }
+  .external-recording {
+    padding: 20px;
+  }
+  .external-recording h1 {
+    font-size: 23px;
+  }
+  .external-recording .run-summary {
+    font-size: 8px;
+  }
+  .player-diagnostics > span:first-child {
+    width: auto;
+  }
+  .player-diagnostics {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .summary-metrics b {
+    font-size: 16px;
+  }
+  .live-diagnostics > summary {
+    font-size: 8px;
+    padding: 5px 8px;
+  }
+}
+.prompt-preview .advanced-content {
+  padding: 10px;
+}
+.prompt-preview textarea {
+  margin-bottom: 0;
+  min-height: 240px;
+}

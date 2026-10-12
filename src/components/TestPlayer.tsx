@@ -3,6 +3,7 @@ import { Maximize, X, AlertTriangle, Play, Download } from "lucide-react";
 import {
   frameAt,
   refreshCompatible,
+  configuredStandard,
   type Diagnostics,
   type Language,
   type RoundResult,
@@ -154,7 +155,7 @@ export default function TestPlayer({
       }
       if (!disposed) callback.current = v.requestVideoFrameCallback(tick);
     }
-    if ("requestVideoFrameCallback" in v)
+    if (typeof v.requestVideoFrameCallback === "function")
       callback.current = v.requestVideoFrameCallback(tick);
     const hidden = () => {
       if (document.hidden && active.current)
@@ -202,6 +203,15 @@ export default function TestPlayer({
     return () => clearInterval(timer);
   }, [phase]);
   async function begin() {
+    if (!configuredStandard(settings)) {
+      setError(
+        t(
+          "源 FPS 与显示器 Hz 不匹配，不能启动标准测试。",
+          "Source FPS and monitor Hz are incompatible; standard testing is blocked.",
+        ),
+      );
+      return;
+    }
     const v = video.current!;
     setError("");
     diag.current = {
@@ -304,8 +314,8 @@ export default function TestPlayer({
             <AlertTriangle size={18} />
             <span>
               {t(
-                "光敏性提示：测试方块每 0.4–0.8 秒改变亮度。对闪光敏感者请勿观看。",
-                "Photosensitivity: a local square changes brightness every 0.4–0.8 s. Do not watch if sensitive to flashes.",
+                "光敏性提示：测试方块每 0.4–0.8 秒改变亮度；小型帧码逐帧变化。对闪光敏感者请勿观看。",
+                "Photosensitivity: a local square changes every 0.4–0.8 s; the small frame code changes each frame. Do not watch if sensitive to flashes.",
               )}
             </span>
           </div>
@@ -315,19 +325,45 @@ export default function TestPlayer({
               "Run this page on the HDMI source PC. Film both the reference and capture preview. Open your preview separately.",
             )}
           </p>
-          <div className="preflight">
-            <span>
-              {t(
-                "浏览器回调节奏（估计）",
-                "Browser callback cadence (estimate)",
-              )}
-            </span>
-            <b>{cadence ?? "—"} Hz</b>
-            <span>
-              {t("真实显示扫描 / HDMI 输出", "Physical scan / HDMI output")}
-            </span>
-            <b>{t("无法验证", "Unverified")}</b>
-          </div>
+          <p className="filming-reminder">
+            {t(
+              "手机同时拍到 HDMI 参考画面与 USB 采集预览；固定机位、同高度，保留真实高帧率原始视频。",
+              "Film HDMI reference and USB preview together. Fix the phone, align both images, keep the original high-FPS recording.",
+            )}
+          </p>
+          <details className="advanced-settings player-advanced">
+            <summary>
+              {t("高级设置：播放预检", "Advanced: playback preflight")}
+            </summary>
+            <div className="advanced-content">
+              <div className="preflight">
+                <span>
+                  {t(
+                    "浏览器回调节奏（估计）",
+                    "Browser callback cadence (estimate)",
+                  )}
+                </span>
+                <b>{cadence ?? "—"} Hz</b>
+                <span>{t("视频帧回调", "Video frame callbacks")}</span>
+                <b>
+                  {typeof video.current?.requestVideoFrameCallback ===
+                  "function"
+                    ? t(
+                        "可用（不验证物理帧）",
+                        "Available (not physical verification)",
+                      )
+                    : t(
+                        "不可用，稳定性无法验证",
+                        "Unavailable; stability unverified",
+                      )}
+                </b>
+                <span>
+                  {t("真实显示扫描 / HDMI 输出", "Physical scan / HDMI output")}
+                </span>
+                <b>{t("无法验证", "Unverified")}</b>
+              </div>
+            </div>
+          </details>
           {(!refreshCompatible(settings.refresh, settings.fps) ||
             cadence === null ||
             Math.abs((cadence ?? 0) - settings.refresh) >
@@ -347,6 +383,7 @@ export default function TestPlayer({
           <button
             className="button primary"
             disabled={
+              !configuredStandard(settings) ||
               phase === "loading" ||
               (phase === "error" && video.current?.readyState === 0)
             }
@@ -360,13 +397,6 @@ export default function TestPlayer({
                   "Enter fullscreen · 5-second countdown",
                 )}
           </button>
-          <a className="back-link" href={asset} download={signal.file}>
-            <Download size={15} />
-            {t(
-              "下载源视频，用于外部 HDMI 信号源",
-              "Download signal for an external HDMI source",
-            )}
-          </a>
         </div>
       ) : (
         <>
@@ -375,7 +405,7 @@ export default function TestPlayer({
               SESSION <b>{session}</b>
             </span>
             <span>
-              ROUND {round}/2 · TARGET {settings.fps} FPS
+              ROUND {round} · SOURCE {settings.fps} FPS
             </span>
           </div>
           {phase === "countdown" && (
@@ -392,16 +422,29 @@ export default function TestPlayer({
           )}
           <div className="player-diagnostics">
             <span>
-              FRAME {String(frame.id).padStart(6, "0")} · EVENT{" "}
-              {String(frame.eventId).padStart(3, "0")}{" "}
-              <small>{t("回调快照", "callback snapshot")}</small>
+              {t("物理 HDMI 输出未验证", "Physical HDMI output unverified")}
             </span>
-            <span>
-              {t("浏览器掉帧", "Browser drops")}{" "}
-              {snapshot.dropped ?? t("不可用", "unavailable")} ·{" "}
-              {t("回调间隙", "Callback gaps")} {snapshot.gaps} ·{" "}
-              {t("物理输出未验证", "Physical output unverified")}
-            </span>
+            <details className="live-diagnostics">
+              <summary>{t("高级诊断", "Advanced diagnostics")}</summary>
+              <div>
+                <p>
+                  FRAME {String(frame.id).padStart(6, "0")} · EVENT{" "}
+                  {String(frame.eventId).padStart(3, "0")}{" "}
+                  <small>{t("回调快照", "callback snapshot")}</small>
+                </p>
+                <p>
+                  {t("浏览器掉帧", "Browser drops")}{" "}
+                  {snapshot.dropped ?? t("不可用", "unavailable")} ·{" "}
+                  {t("回调间隙", "Callback gaps")} {snapshot.gaps}
+                </p>
+                <p>
+                  {t(
+                    "回调间隙不等于物理掉帧；机器帧码与数字已编码在源视频中。",
+                    "Callback gaps do not prove physical drops; frame code and digits are encoded in the source video.",
+                  )}
+                </p>
+              </div>
+            </details>
             <button onClick={() => finish(false, "Stopped by user")}>
               <X size={15} />
               {t("停止", "Stop")}
