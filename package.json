@@ -1,0 +1,33 @@
+{
+  "name": "veyra-latency-lab",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "node scripts/check-assets.mjs && tsc -b && vite build",
+    "typecheck": "tsc --noEmit",
+    "generate:signals": "python3 scripts/generate-signals.py",
+    "verify:signals": "python3 scripts/verify-signals.py",
+    "test": "tsx --test src/core.test.ts",
+    "preview": "vite preview --host 0.0.0.0",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "tailwindcss": "^4.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  }
+}
